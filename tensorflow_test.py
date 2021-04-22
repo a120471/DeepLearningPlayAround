@@ -1,4 +1,4 @@
-from warp import warp_imgs
+from tenosrflow_warp import warp_imgs
 import tensorflow as tf
 
 def tf_load_jpeg(image_path):
@@ -42,14 +42,10 @@ if __name__ == '__main__':
     a = tf.stack([-t_src_targ[2, 0] + d], 0)
     a = tf.reshape(a, [-1, 1, 1])
 
-    prev_loss = 1e10
     for i in range(1000):
       with tf.GradientTape() as tape:
-        warped_result = warp_imgs(imgs, pixel_coords_targ, k_s, k_t, rot, t,  n_trans, a)
+        warped_result = warp_imgs(imgs, pixel_coords_targ, k_s, k_t, rot, t, n_trans, a)
         loss = tf.reduce_mean(tf.square(warped_result - img_targ))
-        if abs(loss - prev_loss) < 0.0001:
-          break
-        prev_loss = loss
 
       print(i, loss)
       grads = tape.gradient(loss, imgs)
