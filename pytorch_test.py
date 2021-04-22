@@ -146,10 +146,3 @@ if __name__ == '__main__':
   plt.imshow(trained_result)
   plt.tight_layout()
   plt.show()
-
-  # # save model
-  # pt.save(model.state_dict(), 'model.pth')
-  # print('Saved PyTorch Model State to model.pth')
-  # # load model
-  # model = NeuralNetwork()
-  # model.load_state_dict(pt.load('model.pth'))
