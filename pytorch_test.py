@@ -43,10 +43,10 @@ if __name__ == '__main__':
 
   # right-hand opencv coordinate system
   R_src = pt.tensor([[1,0,0], [0,1,0], [0,0,1]], dtype=pt.float32)
-  T_src = pt.unsqueeze(pt.tensor([0, 0, -2.5], dtype=pt.float32), -1)
+  T_src = pt.unsqueeze(pt.tensor([0, 0, 0], dtype=pt.float32), -1)
   value = 2 ** 0.5 * 0.5
   R_targ = pt.tensor([[value,value,0], [-value,value,0], [0,0,1]], dtype=pt.float32)
-  T_targ = pt.unsqueeze(pt.tensor([0, 0, -2.5], dtype=pt.float32), -1)
+  T_targ = pt.unsqueeze(pt.tensor([0, 0, 0], dtype=pt.float32), -1)
   K_src = pt.tensor([[2400,0,959.5], [0,2400,539.5], [0,0,1]], dtype=pt.float32)
   K_targ = pt.tensor([[3200,0,959.5], [0,3200,539.5], [0,0,1]], dtype=pt.float32)
 
@@ -56,11 +56,10 @@ if __name__ == '__main__':
   pixel_coords_targ = pt.stack([xs, ys], -1)
   k_s = K_src
   k_t = K_targ
-  rot = rot_src_targ = R_targ.t() @ R_src
-  t = t_src_targ = R_targ.t() @ (T_src - T_targ)
-  n_trans = -rot_src_targ[2:]
-  d = 2.5
-  a = (-t_src_targ[2, 0] + d).reshape([1,1])
+  rot = rot_src_to_targ = R_targ.t() @ R_src
+  t = t_src_to_targ = R_targ.t() @ (T_src - T_targ)
+  n_trans = pt.tensor([[0,0,1]], dtype=pt.float32)
+  a = pt.tensor([[2.5]])
   img_targ = load_image('data/target.jpg').to(pt.float32) / 255
 
   # create model
