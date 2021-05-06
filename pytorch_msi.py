@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from pytorch_warp import warp_imgs
+from pytorch_warp_msi import warp_imgs_msi
 
 import torch as pt
 from torch import nn, optim
@@ -17,8 +17,8 @@ if __name__ == '__main__':
 
   # prepare data
   class WarpDataSet(Dataset):
-    def __init__(self, pixel_coords_targ, k_s, k_t, rot, t, n_trans, a, img_targ):
-      self.data_list = [(pixel_coords_targ, k_s, k_t, rot, t, n_trans, a)]
+    def __init__(self, pixel_coords_targ, k_t, rot, t, r, img_targ):
+      self.data_list = [(pixel_coords_targ, k_t, rot, t, r)]
       self.target = [img_targ]
 
     def __getitem__(self, index):
@@ -47,46 +47,41 @@ if __name__ == '__main__':
   value = 2 ** 0.5 * 0.5
   R_targ = pt.tensor([[value,value,0], [-value,value,0], [0,0,1]], dtype=pt.float32)
   T_targ = pt.unsqueeze(pt.tensor([0, 0, 0], dtype=pt.float32), -1)
-  K_src = pt.tensor([[2400,0,959.5], [0,2400,539.5], [0,0,1]], dtype=pt.float32)
   K_targ = pt.tensor([[3200,0,959.5], [0,3200,539.5], [0,0,1]], dtype=pt.float32)
 
   img_targ = load_image('data/target.jpg').to(pt.float32) / 255
   im_h, im_w = img_targ.shape[-3:-1]
   ys, xs = pt.meshgrid(pt.arange(im_h), pt.arange(im_w))
   pixel_coords_targ = pt.stack([xs, ys], -1)
-  k_s = K_src
   k_t = K_targ
-  rot = rot_src_to_targ = R_targ.t() @ R_src
-  t = t_src_to_targ = R_targ.t() @ (T_src - T_targ)
-  n_trans = pt.tensor([[0,0,1]], dtype=pt.float32)
-  a = pt.tensor([[2.5]])
-  img_gt = load_image('data/src.jpg').to(pt.float32) / 255
+  rot = rot_targ_to_src = R_src.t() @ R_targ
+  t = t_targ_to_src = R_src.t() @ (T_targ - T_src)
+  r = pt.tensor([[2.5]])
 
   # create model
   class WarpModel(nn.Module):
     def __init__(self):
       super().__init__()
-      self.src = pt.randn_like(img_gt)
+      pixel_per_degree = 10
+      self.src = pt.randn([180 * pixel_per_degree, 180 * pixel_per_degree, 3]) # theta in (0,180); phi in (-90,90)
       self.src = nn.Parameter(pt.stack([self.src], 0))
-      self.warp_func = warp_imgs
+      self.warp_func = warp_imgs_msi
 
       self.mask = None
 
     def forward(self, xb):
       pixel_coords_targ = xb[0]
-      k_s = xb[1]
-      k_t = xb[2]
-      rot = xb[3]
-      t = xb[4]
-      n_trans = xb[5]
-      a = xb[6]
+      k_t = xb[1]
+      rot = xb[2]
+      t = xb[3]
+      r = xb[4]
       warped_result = self.warp_func(
-        self.src, pixel_coords_targ, k_s, k_t, rot, t, n_trans, a)
+        self.src, pixel_coords_targ, k_t, rot, t, r)
 
       if self.mask is None:
         ones = pt.ones_like(self.src)
         self.mask = self.warp_func(
-          ones, pixel_coords_targ, k_s, k_t, rot, t, n_trans, a) != 0
+          ones, pixel_coords_targ, k_t, rot, t, r) != 0
 
       return warped_result
 
@@ -127,7 +122,7 @@ if __name__ == '__main__':
   epochs = 1000
 
   train_ds = WarpDataSet(
-    pixel_coords_targ, k_s, k_t, rot, t, n_trans, a, img_targ)
+    pixel_coords_targ, k_t, rot, t, r, img_targ)
   train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=False)
   train_dl = WrappedDataLoader(train_dl, preprocess)
   model = WarpModel().to(dev)
@@ -136,10 +131,6 @@ if __name__ == '__main__':
 
   trained_result = pt.squeeze(model.src.cpu().detach()).numpy()
   from matplotlib import pyplot as plt
-  plt.figure()
-  plt.get_current_fig_manager().window.showMaximized()
-  plt.imshow(img_gt)
-  plt.tight_layout()
   plt.figure()
   plt.get_current_fig_manager().window.showMaximized()
   plt.imshow(trained_result)

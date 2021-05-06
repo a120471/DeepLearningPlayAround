@@ -34,7 +34,7 @@ def transform_points(points, homography):
   '''Transforms input points according to homography.
 
   Args:
-    points: [..., H, W, 2]; pixel (u,v,1) coordinates
+    points: [..., H, W, 2]; pixel (u,v) coordinates
     homography: [..., 3, 3]; desired matrix transformation
   Returns:
     output_points: [..., H, W, 2]; transformed (u,v) coordinates
