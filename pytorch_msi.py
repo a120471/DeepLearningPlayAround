@@ -55,8 +55,8 @@ if __name__ == '__main__':
   pixel_coords_targ = pt.stack([xs, ys], -1)
   k_t = K_targ
   rot = rot_targ_to_src = R_src.t() @ R_targ
-  t = t_targ_to_src = R_src.t() @ (T_targ - T_src)
-  r = pt.tensor([[2.5]])
+  t = t_targ_to_src = (R_src.t() @ (T_targ - T_src))[:,0]
+  r = pt.tensor([2.5])
 
   # create model
   class WarpModel(nn.Module):

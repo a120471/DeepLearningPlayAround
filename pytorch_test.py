@@ -66,7 +66,7 @@ if __name__ == '__main__':
   class WarpModel(nn.Module):
     def __init__(self):
       super().__init__()
-      self.src = pt.randn_like(img_gt)
+      self.src = pt.rand_like(img_gt)
       self.src = nn.Parameter(pt.stack([self.src], 0))
       self.warp_func = warp_imgs
 

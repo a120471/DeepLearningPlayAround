@@ -33,21 +33,21 @@ def calculate_ray_sphere_intersection(rays_o, rays_dir, radius):
   '''Transforms input points according to homography.
 
   Args:
-    rays_o: [..., 3, 1], origin position of rays
+    rays_o: [..., 3], origin position of rays
     rays_dir: [..., H, W, 3], direction of rays
 
-    radius: [..., 1, 1]; radius of sphere
+    radius: [..., 1]; radius of sphere
   Returns:
     intersections: [..., H, W, 3]; intersection points
   '''
   # (rays_o + rays_dir * t - sphere_center) ^ 2 == radius ^ 2
   # At^2 + Bt + C = 0, solve t
 
-  A2 = pt.linalg.norm(rays_dir, axis=-1) ** 2 * 2.0
-  B = 2.0 * pt.tensordot(rays_dir, rays_o[...,0], [[3], [1]])[...,0]
-  C = pt.linalg.norm(rays_o, axis=-2) ** 2 - radius ** 2
+  A2 = pt.linalg.norm(rays_dir, axis=-1, keepdim=True) ** 2 * 2.0
+  B = 2.0 * pt.sum(rays_dir * rays_o[...,None,None,:], axis=-1, keepdim=True)
+  C = pt.linalg.norm(rays_o, axis=-1, keepdim=True) ** 2 - radius ** 2
 
-  det = B ** 2 - 2.0 * A2 * C
+  det = B ** 2 - 2.0 * A2 * C[...,None,None]
   mask = det > 0.0
   det = pt.abs(det)
   sqrt_det = det ** 0.5
@@ -56,9 +56,9 @@ def calculate_ray_sphere_intersection(rays_o, rays_dir, radius):
 
   t[t_smaller > 0] = t_smaller[t_smaller > 0]
   mask &= t > 0.0
-  return rays_o[..., None, None, :,0] + t.unsqueeze(-1) * rays_dir, mask
+  return rays_o[...,None,None,:] + t * rays_dir, mask[...,0]
 
-# opencv coordinate space
+# right-hand opencv coordinate system
 def convert_point3d_to_theta_phi(points3d):
   theta = pt.atan2(points3d[...,2], -points3d[...,0]) # tan(theta) = z / -x
   c = (points3d[...,2] ** 2 + points3d[...,0] ** 2) ** 0.5
@@ -78,6 +78,11 @@ def bilinear_wrapper(imgs, coords):
   im_h, im_w = imgs.shape[-3:-1]
   coords[..., 0] = coords[..., 0] / (im_w-1) * 2 - 1
   coords[..., 1] = coords[..., 1] / (im_h-1) * 2 - 1
+
+  new_imgs_shape = [coords.shape[i] // imgs.shape[i]
+    if coords.shape[i] != imgs.shape[i] else -1 for i in range(len(imgs.shape) - 3)]
+  new_imgs_shape += [-1, -1, -1]
+  imgs = imgs.expand(new_imgs_shape)
 
   # The bilinear sampling code only handles 4D input, so we'll need to reshape.
   init_dims = imgs.shape[:-3]
@@ -101,9 +106,9 @@ def warp_imgs_msi(imgs, pixel_coords_targ, k_t, rot, t, r):
     pixel_coords_targ: [..., H_t, W_t, 2]; pixel (u,v) coordinates
     k_t: intrinsics for target cameras, [..., 3, 3] matrices
     rot: relative rotation, [..., 3, 3] matrices
-    t: [..., 3, 1], translations from target to source camera
+    t: [..., 3], translations from target to source camera
       point p from target to source is accomplished via rot * p + t
-    r: [..., 1, 1], hemisphere radius
+    r: [..., 1], hemisphere radius
   Returns:
     [..., H_t, W_t, C] images after bilinear sampling from input.
       Coordinates outside the image are sampled as 0
