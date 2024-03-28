@@ -6,6 +6,6 @@ pytorch版本"符合"通常理解的深度学习结构,官方Tutorial十分好�
 
 另外pytorch的最终效果好于tensorflow,没有调查其原因
 
-![Ground Truth Image](https://github.com/a120471/DeepLearningPlayAround/blob/master/data/src.jpg)
+![Ground Truth Image](https://github.com/a120471/DeepLearningPlayAround/blob/master/data/camera1.jpg)
 
-![Trained Image](https://github.com/a120471/DeepLearningPlayAround/blob/master/data/trained_result.png)
+![Trained Image](https://github.com/a120471/DeepLearningPlayAround/blob/master/data/camera1_trained.png))
