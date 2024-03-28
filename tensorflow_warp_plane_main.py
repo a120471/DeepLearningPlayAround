@@ -1,5 +1,6 @@
-from tensorflow_warp_plane import warp_imgs
 import tensorflow as tf
+
+from tensorflow_warp_plane import warp_imgs
 
 
 def tf_load_jpeg(image_path):

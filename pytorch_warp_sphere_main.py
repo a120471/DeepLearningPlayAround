@@ -1,6 +1,6 @@
 import numpy as np
 from PIL import Image
-from pytorch_warp_shpere_main import warp_imgs_msi
+from pytorch_warp_shpere import warp_imgs_msi
 
 import torch as pt
 from torch import nn, optim

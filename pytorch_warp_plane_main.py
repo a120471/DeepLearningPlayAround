@@ -5,7 +5,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.io import read_image
 from torchvision.transforms import v2
 
-from pytorch_warp import warp_imgs
+from pytorch_warp_plane import warp_imgs
 
 
 class WarpDataSet(Dataset):
