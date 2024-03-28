@@ -1,15 +1,15 @@
 import numpy as np
-import cv2
-from pytorch_warp_msi import warp_imgs_msi
+from PIL import Image
+from pytorch_warp_shpere_main import warp_imgs_msi
 
 import torch as pt
 from torch import nn, optim
 from torch.utils.data import Dataset, DataLoader
 
 def load_image(image_path):
-  img = cv2.imread(image_path)
-  img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-  return pt.from_numpy(img)
+  img = Image.open(image_path)
+  img = img.convert("RGB")
+  return pt.from_numpy(np.array(img))
 
 if __name__ == '__main__':
   dev = pt.device('cuda') if pt.cuda.is_available() else pt.device('cpu')

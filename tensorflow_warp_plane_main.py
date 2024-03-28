@@ -1,4 +1,4 @@
-from tensorflow_warp import warp_imgs
+from tensorflow_warp_plane import warp_imgs
 import tensorflow as tf
 
 
