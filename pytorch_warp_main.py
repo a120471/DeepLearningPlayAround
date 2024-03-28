@@ -141,16 +141,18 @@ if __name__ == "__main__":
     scheduler = optim.lr_scheduler.StepLR(opt, step_size=100, gamma=0.5)
     fit(epochs, model, loss_func, opt, scheduler, train_dl)
 
-    # visualize results
     trained_result = v2.ToDtype(dtype=pt.uint8, scale=True)(
         pt.squeeze(model.img_data.cpu().detach())
     )
-    plt.figure()
-    plt.get_current_fig_manager().window.showMaximized()
-    plt.imshow(cam1_img_gt.permute(1, 2, 0))
-    plt.tight_layout()
-    plt.figure()
-    plt.get_current_fig_manager().window.showMaximized()
-    plt.imshow(trained_result.permute(1, 2, 0))
-    plt.tight_layout()
-    plt.show()
+    plt.imsave("data/camera1_trained.png", trained_result.permute(1, 2, 0).numpy())
+
+    # # visualize results
+    # plt.figure()
+    # plt.get_current_fig_manager().window.showMaximized()
+    # plt.imshow(cam1_img_gt.permute(1, 2, 0))
+    # plt.tight_layout()
+    # plt.figure()
+    # plt.get_current_fig_manager().window.showMaximized()
+    # plt.imshow(trained_result.permute(1, 2, 0))
+    # plt.tight_layout()
+    # plt.show()
