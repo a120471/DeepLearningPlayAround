@@ -2,7 +2,7 @@
 import torch as pt
 
 
-def _divide_safe(numerator, denom):
+def divide_safe(numerator, denom):
     eps = 1e-8
     denom += eps * pt.eq(denom, 0).to(pt.float32)
     return pt.div(numerator, denom)
@@ -33,7 +33,7 @@ def _get_homography(CF1, K1, CF2, K2, plane_param):
     N_t = plane_param[..., :3, :1].transpose(-1, -2)
     d = (N_t @ P2 + plane_param[..., 3:4, :1]).squeeze(-1)
 
-    H = K1 @ R1 @ (R2_inv - _divide_safe((P2 - P1) @ N_t @ R2_inv, d)) @ K2_inv
+    H = K1 @ R1 @ (R2_inv - divide_safe((P2 - P1) @ N_t @ R2_inv, d)) @ K2_inv
     return H
 
 
@@ -57,10 +57,10 @@ def _transform_points(H, points):
     transformed_points = transformed_points.reshape(points.shape)
     uv = transformed_points[..., :-1]
     w = transformed_points[..., -1:]
-    return _divide_safe(uv, w)
+    return divide_safe(uv, w)
 
 
-def _bilinear_wrapper(imgs, coords):
+def bilinear_interpolate(imgs, coords):
     """Wrapper around bilinear sampling function, handles arbitrary input sizes.
 
     Args:
@@ -88,7 +88,7 @@ def _bilinear_wrapper(imgs, coords):
     return imgs_sampled.reshape(init_dims + imgs_sampled.shape[-3:])
 
 
-def warp_imgs(imgs, pixel_coords, CF1, K1, CF2, K2, plane_param):
+def warp_imgs_to_plane(imgs, pixel_coords, CF1, K1, CF2, K2, plane_param):
     """Warp images from cam1 to cam2. To achieve this, pixel coords are
       transformed from cam2 to cam1 using homography matrix. Here we assume that
       the 3D points are on a plane, and the color of the warped pixels are
@@ -110,6 +110,6 @@ def warp_imgs(imgs, pixel_coords, CF1, K1, CF2, K2, plane_param):
     """
     H = _get_homography(CF1, K1, CF2, K2, plane_param)
     transformed_coords = _transform_points(H, pixel_coords)
-    imgs_warped = _bilinear_wrapper(imgs, transformed_coords)
+    imgs_warped = bilinear_interpolate(imgs, transformed_coords)
 
     return imgs_warped

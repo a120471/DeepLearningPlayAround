@@ -5,7 +5,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.io import read_image
 from torchvision.transforms import v2
 
-from pytorch_warp_plane import warp_imgs
+from pytorch_warp_plane import warp_imgs_to_plane
 
 
 class WarpDataSet(Dataset):
@@ -46,6 +46,7 @@ class WarpModel(nn.Module):
         """
         Args:
           img_shape: [C, H, W]
+          dev: device
         """
         super().__init__()
         self.img_data = nn.Parameter(
@@ -53,7 +54,7 @@ class WarpModel(nn.Module):
         )
         self.mask = None
 
-        self.warp_func = warp_imgs
+        self.warp_func = warp_imgs_to_plane
 
         # in right-hand opencv coordinate system
         self.cam1_frame = pt.tensor(
@@ -67,10 +68,10 @@ class WarpModel(nn.Module):
             pt.tensor([[0, 0, -1, 2.5]], dtype=pt.float32), -1
         ).to(dev)
 
-    def forward(self, Batched_X):
-        cam2_frame = Batched_X[0]
-        cam2_K = Batched_X[1]
-        pixel_coords = Batched_X[2]
+    def forward(self, batched_X):
+        cam2_frame = batched_X[0]
+        cam2_K = batched_X[1]
+        pixel_coords = batched_X[2]
         warped_result = self.warp_func(
             self.img_data,
             pixel_coords,
