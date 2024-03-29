@@ -8,4 +8,4 @@ pytorch版本"符合"通常理解的深度学习结构,官方Tutorial十分好�
 
 ![Ground Truth Image](https://github.com/a120471/DeepLearningPlayAround/blob/master/data/camera1.jpg)
 
-![Trained Image](https://github.com/a120471/DeepLearningPlayAround/blob/master/data/camera1_trained.png))
+![Trained Image](https://github.com/a120471/DeepLearningPlayAround/blob/master/data/camera1_trained.png)
